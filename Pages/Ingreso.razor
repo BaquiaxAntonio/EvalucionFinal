@@ -1,0 +1,111 @@
+﻿@page "/Ingreso"
+@inject HttpClient Http
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject NavigationManager NavigationManager
+
+<h3>Ingresar Smartphone</h3>
+
+<EditForm Model="@smartphone" OnValidSubmit="Guardar">
+    <div class="form-group">
+        <label for="NumSerie">NumSerie</label>
+        <InputText id="NumSerie" @bind-Value="smartphone.NumSerie" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="Marca">Marca</label>
+        <InputText id="Marca" @bind-Value="smartphone.Marca" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="Modelo">Modelo</label>
+        <InputText id="Modelo" @bind-Value="smartphone.Modelo" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="SistemaOperativo">Sistema Operativo</label>
+        <InputText id="SistemaOperativo" @bind-Value="smartphone.SistemaOperativo" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="NumCamaras">Número de Cámaras</label>
+        <InputText id="NumCamaras" @bind-Value="smartphone.NumCamaras" class="form-control" />
+    </div>
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary" @onclick="IncrementCount">Guardar</button>
+    </div>
+
+    <p role="status">Datos Ingresados: @currentCount</p>
+
+    
+
+</EditForm>
+
+@if (smartphones != null)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Número de Serie</th>
+                <th>Marca</th>
+                <th>Modelo</th>
+                <th>Sistema Operativo</th>
+                <th>Número de Cámaras</th>
+                <th>Editar</th>
+                <th>Eliminar</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var smartphone in smartphones)
+            {
+                <tr>
+                    <td>@smartphone.NumSerie</td>
+                    <td>@smartphone.Marca</td>
+                    <td>@smartphone.Modelo</td>
+                    <td>@smartphone.SistemaOperativo</td>
+                    <td>@smartphone.NumCamaras</td>
+                    <td>
+                        <button class="btn btn-warning" @onclick="@(() => NavigationManager.NavigateTo($"/Editar/{smartphone.NumSerie}"))">Editar</button>
+                    </td>
+                    <td>
+                        <button class="btn btn-danger" @onclick="@(() => BorrarSmartphone(smartphone.NumSerie))">Eliminar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private Smartphone smartphone = new Smartphone();
+    private List<Smartphone> smartphones = new List<Smartphone>();
+
+    protected async Task Guardar()
+    {
+        smartphones.Add(smartphone);
+        smartphone = new Smartphone();
+        await localStorage.SetItemAsync("smartphones", smartphones);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        smartphones = await localStorage.GetItemAsync<List<Smartphone>>("smartphones");
+        if (smartphones == null)
+            smartphones = new List<Smartphone>();
+    }
+
+    protected async Task BorrarSmartphone(string numserie)
+    {
+        var smartphoneEliminar = smartphones.FirstOrDefault(s => s.NumSerie == numserie);
+        if (smartphoneEliminar != null)
+        {
+            smartphones.Remove(smartphoneEliminar);
+            await localStorage.SetItemAsync("smartphones", smartphones);
+        }
+    }
+
+
+    private int currentCount = 0;
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+}
+
+
